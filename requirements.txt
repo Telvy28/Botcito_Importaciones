@@ -1,0 +1,76 @@
+# Core Web Framework
+streamlit==1.31.0
+python-dotenv==1.0.0
+
+# Data Processing
+pandas==2.1.4
+
+# Supabase Client (v4.0)
+supabase==2.3.4
+gotrue==2.12.4
+httpx==0.25.2
+
+# AI Providers
+openai==1.10.0  # Compatible con OpenAI y DeepSeek
+groq==0.4.1     # Para Groq
+
+# LangChain Stack (v5.0)
+langchain==0.1.4
+langchain-openai==0.0.5
+langchain-community==0.0.16
+langchain-core==0.1.16
+
+# Database Connectors
+SQLAlchemy==2.0.25
+psycopg2-binary==2.9.9  # PostgreSQL para v5.0
+
+# HTTP Utilities
+requests==2.31.0
+
+# ========== NOTAS DE INSTALACIÓN ==========
+#
+# INSTALACIÓN RECOMENDADA:
+# 1. Crear entorno virtual limpio:
+#    python -m venv chatbot_supa
+#
+# 2. Activar entorno:
+#    Windows: .\chatbot_supa\Scripts\Activate.ps1
+#    Linux/Mac: source chatbot_supa/bin/activate
+#
+# 3. Actualizar pip:
+#    python -m pip install --upgrade pip
+#
+# 4. Instalar dependencias:
+#    pip install -r requirements.txt
+#
+# ========== SOLUCIÓN DE CONFLICTOS ==========
+#
+# Si encuentras conflictos de versiones:
+#
+# 1. LIMPIAR TODO:
+#    pip uninstall -y streamlit langchain langchain-openai langchain-community openai groq supabase
+#
+# 2. REINSTALAR:
+#    pip install -r requirements.txt
+#
+# 3. VERIFICAR:
+#    python Diagnostico.py
+#
+# ========== COMPATIBILIDAD ==========
+#
+# Python: 3.9 - 3.11 (recomendado 3.10)
+# NO usar Python 3.12+ (incompatible con algunas librerías)
+#
+# Versiones críticas:
+# - langchain 0.1.x (NO 0.2+)
+# - langchain-openai 0.0.5 (NO versiones nuevas)
+# - langchain-community 0.0.16
+# - openai 1.10.0 (compatible con function calling)
+#
+# ========== DEPLOYMENT (Streamlit Cloud) ==========
+#
+# En Streamlit Cloud, este requirements.txt se instala automáticamente.
+# Asegúrate de:
+# 1. Subir este archivo a la raíz del repo
+# 2. Configurar Secrets en Settings (copiar .env)
+# 3. Python version: 3.10
