@@ -15,44 +15,93 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# CSS MEJORADO: Sidebar más estrecho y mejor distribución
+# CSS personalizado
 st.markdown("""
 <style>
-    /* Sidebar más estrecho */
-    section[data-testid="stSidebar"] {
-        width: 320px !important;
-        min-width: 320px !important;
-        max-width: 320px !important;
-    }
-    
-    /* Ajuste del contenido principal cuando hay sidebar */
-    .main > div {
-        margin-left: 320px;
-    }
-    
-    /* Ajuste global */
+    /* Reducir padding superior general */
     .block-container {
-        padding-top: 2rem;
-        padding-bottom: 1rem;
-        max-width: 100%;
+        padding-top: 1rem !important;
+        padding-bottom: 0rem !important;
+        max-width: 100% !important;
     }
     
-    /* Estilo para el contenedor del Power BI */
-    .powerbi-container {
-        margin-top: 20px;
-        height: 85vh;
-        width: 100%;
+    /* Eliminar espacio lateral del main */
+    .main > div {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+        max-width: 100% !important;
     }
     
-    /* Mejoras en el chat */
-    .stChatMessage {
-        font-size: 0.9rem;
+    /* Contenedor del dashboard más ancho */
+    [data-testid="column"] {
+        padding-left: 0rem !important;
+        padding-right: 0rem !important;
     }
     
-    /* Input del chat más visible */
-    .stChatInputContainer {
-        padding-top: 0.5rem;
-        border-top: 1px solid #e0e0e0;
+    /* Power BI iframe responsive y centrado */
+    iframe {
+        display: block;
+        margin: 0 auto;
+        max-width: 98% !important;
+        width: 100% !important;
+    }
+    
+    /* SIDEBAR COMPACTO */
+    [data-testid="stSidebar"] {
+        padding-top: 0.5rem !important;
+    }
+    
+    [data-testid="stSidebar"] > div:first-child {
+        padding-top: 0rem !important;
+    }
+    
+    /* Título compacto */
+    [data-testid="stSidebar"] h1 {
+        margin-top: 0rem !important;
+        margin-bottom: 0.3rem !important;
+        padding-top: 0rem !important;
+        font-size: 1.5rem !important;
+    }
+    
+    /* Firma compacta */
+    .firma {
+        font-size: 0.75rem;
+        color: #666;
+        margin-top: -0.3rem !important;
+        margin-bottom: 0.5rem !important;
+        font-style: italic;
+    }
+    
+    /* Reducir espacio entre elementos del sidebar */
+    [data-testid="stSidebar"] .stRadio {
+        margin-bottom: 0rem !important;
+    }
+    
+    [data-testid="stSidebar"] .stSelectbox {
+        margin-bottom: 0rem !important;
+    }
+    
+    /* Dividers más delgados */
+    [data-testid="stSidebar"] hr {
+        margin-top: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Labels más compactos */
+    [data-testid="stSidebar"] label {
+        font-size: 0.9rem !important;
+        margin-bottom: 0.2rem !important;
+    }
+    
+    /* Eliminar scroll horizontal */
+    .main {
+        overflow-x: hidden !important;
+    }
+    
+    /* Chat input más compacto */
+    [data-testid="stChatInput"] {
+        margin-top: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -66,21 +115,21 @@ db = init_db()
 
 # ========== SIDEBAR: CHATBOT ==========
 with st.sidebar:
+    # Título y firma (sin espacio extra)
     st.markdown("# 🤖 Asistente IA")
     st.markdown('<p class="firma">by Telvy Pizarro</p>', unsafe_allow_html=True)
-    st.markdown("---")
     
-    # Selectores
+    # Selectores compactos (sin dividers innecesarios)
     chat_mode = st.radio(
         "Versión:",
-        ["💬 Chat v4.0 (Rápido)", "🚀 Chat v5.0 (SQL Agent)"]
+        ["💬 Chat v4.0 (Rápido)", "🚀 Chat v5.0 (SQL Agent)"],
+        label_visibility="visible"
     )
-    
-    st.divider()
     
     model_option = st.selectbox(
         "🧠 Modelo IA:",
-        ["🆓 Groq (Llama 3.3 - Potente)", "💰 DeepSeek (Chat)", "🌟 OpenAI (GPT-4o)"]
+        ["🆓 Groq (Llama 3.3 - Potente)", "💰 DeepSeek (Chat)", "🌟 OpenAI (GPT-4o)"],
+        label_visibility="visible"
     )
     
     # Mapeo de providers
@@ -88,24 +137,20 @@ with st.sidebar:
     elif "DeepSeek" in model_option: provider = "deepseek"
     else: provider = "openai"
     
-    st.divider()
+    st.markdown("---")
     
-    # ====== INPUT Y BOTÓN ARRIBA (siempre visibles) ======
-    prompt = st.chat_input("Pregunta sobre importaciones...")
+    # ====== INPUT DE CHAT (siempre visible) ======
+    prompt = st.chat_input("💬 Pregunta sobre importaciones...")
     
-    col1, col2 = st.columns([1, 1])
-    with col1:
-        if st.button("🗑️ Limpiar", use_container_width=True):
-            st.session_state.chat_v4 = []
-            st.session_state.chat_v5 = []
-            st.rerun()
+    # Botón limpiar compacto
+    if st.button("🗑️ Limpiar conversación", use_container_width=True, type="secondary"):
+        st.session_state.chat_v4 = []
+        st.session_state.chat_v5 = []
+        st.rerun()
     
-    st.divider()
+    st.markdown("---")
     
-    # ====== CONTENEDOR DE MENSAJES CON SCROLL ======
-    # Reducido a 350px para que input quede visible sin scroll
-    chat_container = st.container(height=350, border=True)
-    
+    # ====== ÁREA DE RESPUESTAS CON SCROLL ======
     # Determinar chat activo
     current_chat = []
     if chat_mode == "💬 Chat v4.0 (Rápido)":
@@ -117,11 +162,16 @@ with st.sidebar:
             st.session_state.chat_v5 = []
         current_chat = st.session_state.chat_v5
     
-    # Renderizar historial dentro del contenedor
+    # Contenedor de mensajes (ajusta height según necesites)
+    chat_container = st.container(height=400, border=True)
+    
     with chat_container:
-        for msg in current_chat:
-            with st.chat_message(msg["role"]):
-                st.markdown(msg["content"])
+        if len(current_chat) == 0:
+            st.info("👋 Haz una pregunta sobre importaciones para comenzar")
+        else:
+            for msg in current_chat:
+                with st.chat_message(msg["role"]):
+                    st.markdown(msg["content"])
     
     # ====== PROCESAMIENTO DEL PROMPT ======
     if prompt:
@@ -154,12 +204,12 @@ with st.sidebar:
             # Añadir respuesta del asistente
             current_chat.append({"role": "assistant", "content": response})
             
-            # Forzar rerun para actualizar el chat
+            # Rerun para actualizar
             st.rerun()
                     
         except Exception as e:
-            st.error(f"Error: {str(e)}")
-
+            st.error(f"❌ Error: {str(e)}")
+            
 # ========== ÁREA PRINCIPAL: POWER BI ==========
 powerbi_url = os.getenv("POWERBI_URL", "")
 
