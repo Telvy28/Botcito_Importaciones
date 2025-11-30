@@ -66,7 +66,9 @@ db = init_db()
 
 # ========== SIDEBAR: CHATBOT ==========
 with st.sidebar:
-    st.title("🤖 Asistente IA")
+    st.markdown("# 🤖 Asistente IA")
+    st.markdown('<p class="firma">by Telvy Pizarro</p>', unsafe_allow_html=True)
+    st.markdown("---")
     
     # Selectores
     chat_mode = st.radio(
@@ -85,44 +87,52 @@ with st.sidebar:
     if "Groq" in model_option: provider = "groq"
     elif "DeepSeek" in model_option: provider = "deepseek"
     else: provider = "openai"
-
+    
     st.divider()
-
-    # --- LÓGICA DEL CHAT CON SCROLL ---
-    # Usamos st.container con height fijo para crear el scroll
-    chat_container = st.container(height=500, border=True)
     
-    # Input fuera del contenedor de scroll para que siempre esté visible abajo (o arriba según prefieras)
-    # Nota: En sidebar el input siempre va al final o al principio.
+    # ====== INPUT Y BOTÓN ARRIBA (siempre visibles) ======
+    prompt = st.chat_input("Pregunta sobre importaciones...")
     
-    # 1. Renderizar historial dentro del contenedor con scroll
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        if st.button("🗑️ Limpiar", use_container_width=True):
+            st.session_state.chat_v4 = []
+            st.session_state.chat_v5 = []
+            st.rerun()
+    
+    st.divider()
+    
+    # ====== CONTENEDOR DE MENSAJES CON SCROLL ======
+    # Reducido a 350px para que input quede visible sin scroll
+    chat_container = st.container(height=350, border=True)
+    
+    # Determinar chat activo
+    current_chat = []
+    if chat_mode == "💬 Chat v4.0 (Rápido)":
+        if "chat_v4" not in st.session_state: 
+            st.session_state.chat_v4 = []
+        current_chat = st.session_state.chat_v4
+    else:
+        if "chat_v5" not in st.session_state: 
+            st.session_state.chat_v5 = []
+        current_chat = st.session_state.chat_v5
+    
+    # Renderizar historial dentro del contenedor
     with chat_container:
-        current_chat = []
-        if chat_mode == "💬 Chat v4.0 (Rápido)":
-            if "chat_v4" not in st.session_state: st.session_state.chat_v4 = []
-            current_chat = st.session_state.chat_v4
-        else:
-            if "chat_v5" not in st.session_state: st.session_state.chat_v5 = []
-            current_chat = st.session_state.chat_v5
-            
         for msg in current_chat:
             with st.chat_message(msg["role"]):
                 st.markdown(msg["content"])
-
-    # 2. Input del Chat
-    if prompt := st.chat_input("Pregunta sobre importaciones..."):
-        # Añadir usuario
+    
+    # ====== PROCESAMIENTO DEL PROMPT ======
+    if prompt:
+        # Añadir mensaje del usuario
         current_chat.append({"role": "user", "content": prompt})
-        with chat_container: # Mostrar inmediatamente en la caja
-            with st.chat_message("user"):
-                st.markdown(prompt)
         
         # Procesar respuesta
         try:
             response = ""
             if chat_mode == "💬 Chat v4.0 (Rápido)":
                 bot = ImportacionesChatbot(db, provider=provider)
-                # Spinner en el sidebar
                 with st.spinner("🔍 Analizando..."):
                     response = bot.chat(prompt)
             else:
@@ -130,32 +140,25 @@ with st.sidebar:
                 try:
                     from utils.langchain_chatbot import LangChainChatbot
                 except ImportError:
-                    # Si falla, intentar importación directa
                     from langchain_chatbot import LangChainChatbot
                 
                 with st.spinner("🧠 Ejecutando consulta SQL..."):
                     agent = LangChainChatbot(provider=provider)
                     response = agent.chat(prompt)
-                    # Limpiar respuesta verbose si es necesario
+                    
+                    # Limpiar respuesta verbose
                     if "Thought:" in response:
-                        # Extraer solo la respuesta final
                         if "Final Answer:" in response:
                             response = response.split("Final Answer:")[-1].strip()
             
-            # Añadir respuesta
+            # Añadir respuesta del asistente
             current_chat.append({"role": "assistant", "content": response})
-            with chat_container: # Mostrar en la caja
-                with st.chat_message("assistant"):
-                    st.markdown(response)
+            
+            # Forzar rerun para actualizar el chat
+            st.rerun()
                     
         except Exception as e:
             st.error(f"Error: {str(e)}")
-
-    # Botón limpiar
-    if st.button("🗑️ Limpiar", use_container_width=True):
-        st.session_state.chat_v4 = []
-        st.session_state.chat_v5 = []
-        st.rerun()
 
 # ========== ÁREA PRINCIPAL: POWER BI ==========
 powerbi_url = os.getenv("POWERBI_URL", "")
